@@ -27,4 +27,7 @@ interface TaskDao {
 
     @Query("SELECT * FROM tasks WHERE status != 'DONE' AND dueAtMillis BETWEEN :fromMillis AND :toMillis ORDER BY dueAtMillis ASC")
     suspend fun getUpcomingNotDone(fromMillis: Long, toMillis: Long): List<TaskEntity>
+
+    @Query("UPDATE tasks SET lastNotifiedAtMillis = :timestamp WHERE id = :taskId")
+    suspend fun updateLastNotified(taskId: Long, timestamp: Long)
 }

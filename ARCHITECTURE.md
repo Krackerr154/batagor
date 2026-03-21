@@ -64,6 +64,7 @@ TaskEntity fields:
 - priority (TaskPriority)
 - status (TaskStatus)
 - createdAtMillis (Long, default current time)
+- lastNotifiedAtMillis (Long, default 0, tracks last notification timestamp)
 
 Domain enums:
 - TaskPriority: HIGH, MEDIUM, LOW
@@ -87,8 +88,16 @@ Domain enums:
 ### Deadline Notification Flow
 1. WorkManager triggers DeadlineNotificationWorker every 6 hours.
 2. Worker queries tasks not DONE and due within 3 days.
-3. Worker calculates urgency labels.
-4. NotificationHelper publishes one notification per upcoming task.
+3. Worker applies deduplication logic:
+   - Skips tasks notified within last 6 hours (dedup window).
+   - Only notifies tasks that are new or outside dedup window.
+4. Worker calculates urgency labels with visual indicators:
+   - ⚠️ Overdue (past due date)
+   - 🔴 Due within 24 hours
+   - 🟡 Due within 3 days
+5. NotificationHelper publishes one notification per upcoming task.
+6. Notification includes tap action to open app (MainActivity).
+7. Worker updates lastNotifiedAtMillis timestamp for each notified task.
 
 ## 6. Navigation Architecture
 Route graph:
@@ -132,14 +141,19 @@ Build targets:
 
 ## 9. Risks and Improvement Opportunities
 Current risks:
-- Worker can emit repeated notifications for same task across runs.
-- No snooze/deduplication state for notifications.
-- Form validation is minimal (title-only).
-- Missing dedicated tests for repository/view model/worker.
+- Form validation is minimal (title and past-date only).
+- No snooze or dismiss-forever options for notifications.
+- Missing dedicated integration tests for worker end-to-end flow.
+
+Addressed in Milestone 3:
+- ✅ Notification deduplication prevents spam during repeated worker runs.
+- ✅ Tap action allows users to open app directly from notification.
+- ✅ Enhanced urgency messaging with visual indicators (emojis).
+- ✅ lastNotifiedAtMillis timestamp persisted in database (migration 1→2).
 
 Suggested next architecture increments:
 - Add use-case layer for domain actions if complexity grows.
-- Add notification dedupe strategy (store last notified timestamp).
 - Add editable task details route and deep-link capable navigation.
 - Introduce explicit error and loading UI states.
 - Add dependency injection (for example Hilt) for scalability.
+- Add notification action buttons (e.g., "Mark as Done", "Snooze").

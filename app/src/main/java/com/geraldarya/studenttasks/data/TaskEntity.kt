@@ -15,5 +15,6 @@ data class TaskEntity(
     val tag: TaskTag,
     val priority: TaskPriority,
     val status: TaskStatus,
-    val createdAtMillis: Long = System.currentTimeMillis()
+    val createdAtMillis: Long = System.currentTimeMillis(),
+    val lastNotifiedAtMillis: Long = 0
 )

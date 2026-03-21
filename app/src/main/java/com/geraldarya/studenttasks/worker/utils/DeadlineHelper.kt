@@ -19,9 +19,9 @@ object DeadlineHelper {
     fun determineUrgency(taskDueMillis: Long, currentMillis: Long): String? {
         val remaining = taskDueMillis - currentMillis
         return when {
-            remaining < 0 -> "Overdue"
-            remaining <= ReminderConstants.URGENT_THRESHOLD_MILLIS -> "Due within 24 hours"
-            remaining <= ReminderConstants.LOOKAHEAD_WINDOW_MILLIS -> "Due within 3 days"
+            remaining < 0 -> "⚠️ Overdue"
+            remaining <= ReminderConstants.URGENT_THRESHOLD_MILLIS -> "🔴 Due within 24 hours"
+            remaining <= ReminderConstants.LOOKAHEAD_WINDOW_MILLIS -> "🟡 Due within 3 days"
             else -> null
         }
     }
@@ -56,5 +56,24 @@ object DeadlineHelper {
      */
     fun isWithinWindow(taskDueMillis: Long, windowStart: Long, windowEnd: Long): Boolean {
         return taskDueMillis in windowStart..windowEnd
+    }
+
+    /**
+     * Checks if a task should be notified based on deduplication window.
+     * Returns false if task was notified recently (within dedup window).
+     *
+     * @param task Task to check
+     * @param currentMillis Current time
+     * @return true if task should be notified, false if recently notified
+     */
+    fun shouldNotifyTask(task: TaskEntity, currentMillis: Long): Boolean {
+        // If never notified (lastNotifiedAtMillis == 0), should notify
+        if (task.lastNotifiedAtMillis == 0L) {
+            return true
+        }
+
+        // Check if outside dedup window
+        val timeSinceLastNotification = currentMillis - task.lastNotifiedAtMillis
+        return timeSinceLastNotification >= ReminderConstants.DEDUP_WINDOW_MILLIS
     }
 }

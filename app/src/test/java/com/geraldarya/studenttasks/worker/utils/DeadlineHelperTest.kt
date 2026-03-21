@@ -88,7 +88,7 @@ class DeadlineHelperTest {
     }
 
     @Test
-    fun testDetermineUrgency_AlreadyPassed_ReturnsUrgentMessage() {
+    fun testDetermineUrgency_AlreadyPassed_ReturnsOverdueMessage() {
         // Given: task already overdue
         val now = 1000000L
         val taskDue = now - 1000L // -1 second
@@ -96,8 +96,8 @@ class DeadlineHelperTest {
         // When: determining urgency
         val urgency = DeadlineHelper.determineUrgency(taskDue, now)
 
-        // Then: urgent message (negative remaining time still <= 24h threshold)
-        assertEquals("Due within 24 hours", urgency)
+        // Then: overdue message returned
+        assertEquals("Overdue", urgency)
     }
 
     @Test

@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.geraldarya.studenttasks.constants.ReminderConstants
 import com.geraldarya.studenttasks.data.AppDatabase
 import com.geraldarya.studenttasks.notifications.NotificationHelper
 import com.geraldarya.studenttasks.worker.utils.DeadlineHelper

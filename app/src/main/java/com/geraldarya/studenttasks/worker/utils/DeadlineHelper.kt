@@ -19,6 +19,7 @@ object DeadlineHelper {
     fun determineUrgency(taskDueMillis: Long, currentMillis: Long): String? {
         val remaining = taskDueMillis - currentMillis
         return when {
+            remaining < 0 -> "Overdue"
             remaining <= ReminderConstants.URGENT_THRESHOLD_MILLIS -> "Due within 24 hours"
             remaining <= ReminderConstants.LOOKAHEAD_WINDOW_MILLIS -> "Due within 3 days"
             else -> null

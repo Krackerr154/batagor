@@ -9,8 +9,7 @@ import com.geraldarya.studenttasks.domain.TaskTag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -43,13 +42,14 @@ class TaskViewModelTest {
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
 
-    private val testDispatcher = StandardTestDispatcher()
+    private lateinit var testDispatcher: UnconfinedTestDispatcher
     private lateinit var mockRepository: TaskRepository
     private lateinit var viewModel: TaskViewModel
     private lateinit var taskFlow: MutableStateFlow<List<TaskEntity>>
 
     @Before
     fun setup() {
+        testDispatcher = UnconfinedTestDispatcher()
         Dispatchers.setMain(testDispatcher)
         mockRepository = mock()
         taskFlow = MutableStateFlow(emptyList())
@@ -65,7 +65,6 @@ class TaskViewModelTest {
     @Test
     fun testInitialState_IsEmpty() = runTest {
         // Given: freshly created view model
-        advanceUntilIdle()
 
         // When: observing initial state
         val state = viewModel.uiState.value
@@ -108,11 +107,9 @@ class TaskViewModelTest {
             )
         )
         taskFlow.value = tasks
-        advanceUntilIdle()
 
         // When: filtering by COURSEWORK tag
         viewModel.setFilter(TaskTag.COURSEWORK)
-        advanceUntilIdle()
 
         // Then: only COURSEWORK tasks are shown
         val state = viewModel.uiState.value
@@ -145,13 +142,10 @@ class TaskViewModelTest {
             )
         )
         taskFlow.value = tasks
-        advanceUntilIdle()
         viewModel.setFilter(TaskTag.EXAMS)
-        advanceUntilIdle()
 
         // When: clearing the filter (set to null)
         viewModel.setFilter(null)
-        advanceUntilIdle()
 
         // Then: all tasks are shown
         val state = viewModel.uiState.value
@@ -192,7 +186,6 @@ class TaskViewModelTest {
             )
         )
         taskFlow.value = tasks
-        advanceUntilIdle()
 
         // When: observing state
         val state = viewModel.uiState.value
@@ -224,7 +217,6 @@ class TaskViewModelTest {
             priority = priority,
             status = status
         )
-        advanceUntilIdle()
 
         // Then: repository save is called with correct entity
         verify(mockRepository).save(
@@ -261,7 +253,6 @@ class TaskViewModelTest {
             priority = priority,
             status = status
         )
-        advanceUntilIdle()
 
         // Then: repository save is called with correct entity
         verify(mockRepository).save(
@@ -293,7 +284,6 @@ class TaskViewModelTest {
 
         // When: updating the status
         viewModel.updateStatus(task, newStatus)
-        advanceUntilIdle()
 
         // Then: repository save is called with updated status
         verify(mockRepository).save(task.copy(status = newStatus))
@@ -314,7 +304,6 @@ class TaskViewModelTest {
 
         // When: deleting the task
         viewModel.deleteTask(task)
-        advanceUntilIdle()
 
         // Then: repository delete is called
         verify(mockRepository).delete(task)
@@ -353,11 +342,9 @@ class TaskViewModelTest {
             )
         )
         taskFlow.value = tasks
-        advanceUntilIdle()
 
         // When: filtering by COURSEWORK
         viewModel.setFilter(TaskTag.COURSEWORK)
-        advanceUntilIdle()
 
         // Then: only COURSEWORK tasks shown, sorted by due date
         val state = viewModel.uiState.value
@@ -383,11 +370,9 @@ class TaskViewModelTest {
             )
         )
         taskFlow.value = tasks
-        advanceUntilIdle()
 
         // When: filtering by a tag that doesn't exist in tasks
         viewModel.setFilter(TaskTag.THESIS)
-        advanceUntilIdle()
 
         // Then: empty filtered result
         val state = viewModel.uiState.value

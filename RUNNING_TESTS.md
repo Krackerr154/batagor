@@ -65,10 +65,10 @@ app/src/test/java/com/geraldarya/studenttasks/
 ```
 
 ### Issue: "Mockito cannot mock final classes"
-**Solution**: Already configured in `testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")`
+**Solution**: Mockito inline mock maker is enabled via `mockito-inline` dependency. By default, Mockito cannot mock final Kotlin classes without this. The project includes `testImplementation("org.mockito:mockito-inline:5.14.2")` to enable final class mocking.
 
 ### Issue: "CoroutineTest timeout"
-**Solution**: Tests use `StandardTestDispatcher` and `advanceUntilIdle()` for deterministic execution
+**Solution**: Tests use `UnconfinedTestDispatcher` for immediate execution of coroutines in tests.
 
 ### Issue: "Android dependencies not found"
 **Solution**: Robolectric is configured for worker tests that need Context
@@ -84,7 +84,7 @@ app/src/test/java/com/geraldarya/studenttasks/
 ### When Adding New ViewModel Features
 1. Add test to `TaskViewModelTest.kt`
 2. Use `MutableStateFlow` to control repository emissions
-3. Test state flow output with `advanceUntilIdle()`
+3. Use `UnconfinedTestDispatcher` for immediate coroutine execution
 4. Verify UI state transformations
 
 ### When Modifying Worker Logic

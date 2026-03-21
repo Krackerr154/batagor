@@ -28,9 +28,11 @@ import org.robolectric.annotation.Config
  * - Done task exclusion
  * - Database error handling
  *
- * Note: These tests use Robolectric for Android Context dependencies.
- * To keep tests simple and focused on logic, we're testing the behavior
- * through integration with the actual worker and mocked database.
+ * Note: These tests document expected behavior and validate contracts.
+ * The worker uses the actual AppDatabase singleton, making full mocking difficult.
+ * For isolated testing, the urgency logic has been extracted into DeadlineHelper
+ * with comprehensive tests in DeadlineHelperTest. These tests serve as behavior
+ * documentation and validation of the worker's contract with the system.
  */
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])

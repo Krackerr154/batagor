@@ -83,6 +83,7 @@ dependencies {
     testImplementation("androidx.room:room-testing:2.6.1")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     testImplementation("org.mockito:mockito-core:5.14.2")
+    testImplementation("org.mockito:mockito-inline:5.14.2")
     testImplementation("androidx.work:work-testing:2.9.1")
     testImplementation("org.robolectric:robolectric:4.13")
 

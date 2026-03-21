@@ -20,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.geraldarya.studenttasks.constants.ReminderConstants
 import com.geraldarya.studenttasks.data.TaskEntity
 import com.geraldarya.studenttasks.domain.TaskStatus
 import java.time.Instant
@@ -80,8 +81,8 @@ fun TaskCard(
 @Composable
 private fun deadlineColor(dueAtMillis: Long, status: TaskStatus) = when {
     status == TaskStatus.DONE -> MaterialTheme.colorScheme.surfaceContainerLow
-    dueAtMillis <= System.currentTimeMillis() + (24L * 60L * 60L * 1000L) -> MaterialTheme.colorScheme.errorContainer
-    dueAtMillis <= System.currentTimeMillis() + (3L * 24L * 60L * 60L * 1000L) -> MaterialTheme.colorScheme.tertiaryContainer
+    dueAtMillis <= System.currentTimeMillis() + ReminderConstants.URGENT_THRESHOLD_MILLIS -> MaterialTheme.colorScheme.errorContainer
+    dueAtMillis <= System.currentTimeMillis() + ReminderConstants.LOOKAHEAD_WINDOW_MILLIS -> MaterialTheme.colorScheme.tertiaryContainer
     else -> MaterialTheme.colorScheme.surfaceContainerLowest
 }
 

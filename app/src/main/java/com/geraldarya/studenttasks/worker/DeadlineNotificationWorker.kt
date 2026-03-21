@@ -7,6 +7,7 @@ import androidx.work.WorkerParameters
 import com.geraldarya.studenttasks.constants.ReminderConstants
 import com.geraldarya.studenttasks.data.AppDatabase
 import com.geraldarya.studenttasks.notifications.NotificationHelper
+import com.geraldarya.studenttasks.worker.utils.DeadlineHelper
 
 class DeadlineNotificationWorker(
     appContext: Context,
@@ -18,7 +19,7 @@ class DeadlineNotificationWorker(
             // Defensive: wrap database access in try-catch
             val repository = AppDatabase.getInstance(applicationContext).taskDao()
             val now = System.currentTimeMillis()
-            val lookaheadEnd = now + ReminderConstants.LOOKAHEAD_WINDOW_MILLIS
+            val lookaheadEnd = DeadlineHelper.computeLookaheadEnd(now)
 
             val tasks = try {
                 repository.getUpcomingNotDone(now, lookaheadEnd)
@@ -39,17 +40,12 @@ class DeadlineNotificationWorker(
             tasks.forEach { task ->
                 try {
                     // Defensive: validate task data before processing
-                    if (task.title.isBlank() || task.dueAtMillis <= 0) {
+                    if (!DeadlineHelper.isValidForNotification(task)) {
                         Log.w(TAG, "Skipping invalid task: id=${task.id}")
                         return@forEach
                     }
 
-                    val remaining = task.dueAtMillis - now
-                    val urgency = when {
-                        remaining <= ReminderConstants.URGENT_THRESHOLD_MILLIS -> "Due within 24 hours"
-                        remaining <= ReminderConstants.LOOKAHEAD_WINDOW_MILLIS -> "Due within 3 days"
-                        else -> null
-                    }
+                    val urgency = DeadlineHelper.determineUrgency(task.dueAtMillis, now)
 
                     if (urgency != null) {
                         NotificationHelper.showDeadlineNotification(

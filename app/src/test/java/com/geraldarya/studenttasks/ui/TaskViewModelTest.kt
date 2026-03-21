@@ -8,7 +8,9 @@ import com.geraldarya.studenttasks.domain.TaskStatus
 import com.geraldarya.studenttasks.domain.TaskTag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -21,6 +23,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
@@ -46,6 +49,7 @@ class TaskViewModelTest {
     private lateinit var mockRepository: TaskRepository
     private lateinit var viewModel: TaskViewModel
     private lateinit var taskFlow: MutableStateFlow<List<TaskEntity>>
+    private lateinit var collectorJob: Job
 
     @Before
     fun setup() {
@@ -55,10 +59,15 @@ class TaskViewModelTest {
         taskFlow = MutableStateFlow(emptyList())
         whenever(mockRepository.observeTasks()).thenReturn(taskFlow)
         viewModel = TaskViewModel(mockRepository)
+        // Start collecting uiState to trigger upstream flow collection
+        collectorJob = testDispatcher.launch {
+            viewModel.uiState.collect {}
+        }
     }
 
     @After
     fun tearDown() {
+        collectorJob.cancel()
         Dispatchers.resetMain()
     }
 
@@ -220,17 +229,17 @@ class TaskViewModelTest {
         testScheduler.runCurrent()
 
         // Then: repository save is called with correct entity
-        verify(mockRepository).save(
-            TaskEntity(
-                id = 0L,
-                title = title,
-                description = description,
-                dueAtMillis = dueAtMillis,
-                tag = tag,
-                priority = priority,
-                status = status
-            )
-        )
+        val captor = argumentCaptor<TaskEntity>()
+        verify(mockRepository).save(captor.capture())
+
+        val savedTask = captor.firstValue
+        assertEquals(0L, savedTask.id)
+        assertEquals(title, savedTask.title)
+        assertEquals(description, savedTask.description)
+        assertEquals(dueAtMillis, savedTask.dueAtMillis)
+        assertEquals(tag, savedTask.tag)
+        assertEquals(priority, savedTask.priority)
+        assertEquals(status, savedTask.status)
     }
 
     @Test
@@ -257,17 +266,17 @@ class TaskViewModelTest {
         testScheduler.runCurrent()
 
         // Then: repository save is called with correct entity
-        verify(mockRepository).save(
-            TaskEntity(
-                id = existingId,
-                title = title,
-                description = description,
-                dueAtMillis = dueAtMillis,
-                tag = tag,
-                priority = priority,
-                status = status
-            )
-        )
+        val captor = argumentCaptor<TaskEntity>()
+        verify(mockRepository).save(captor.capture())
+
+        val savedTask = captor.firstValue
+        assertEquals(existingId, savedTask.id)
+        assertEquals(title, savedTask.title)
+        assertEquals(description, savedTask.description)
+        assertEquals(dueAtMillis, savedTask.dueAtMillis)
+        assertEquals(tag, savedTask.tag)
+        assertEquals(priority, savedTask.priority)
+        assertEquals(status, savedTask.status)
     }
 
     @Test

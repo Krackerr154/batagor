@@ -217,6 +217,7 @@ class TaskViewModelTest {
             priority = priority,
             status = status
         )
+        testScheduler.runCurrent()
 
         // Then: repository save is called with correct entity
         verify(mockRepository).save(
@@ -253,6 +254,7 @@ class TaskViewModelTest {
             priority = priority,
             status = status
         )
+        testScheduler.runCurrent()
 
         // Then: repository save is called with correct entity
         verify(mockRepository).save(
@@ -284,6 +286,7 @@ class TaskViewModelTest {
 
         // When: updating the status
         viewModel.updateStatus(task, newStatus)
+        testScheduler.runCurrent()
 
         // Then: repository save is called with updated status
         verify(mockRepository).save(task.copy(status = newStatus))
@@ -304,6 +307,7 @@ class TaskViewModelTest {
 
         // When: deleting the task
         viewModel.deleteTask(task)
+        testScheduler.runCurrent()
 
         // Then: repository delete is called
         verify(mockRepository).delete(task)

@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.geraldarya.studenttasks.constants.ReminderConstants
 import com.geraldarya.studenttasks.data.AppDatabase
 import com.geraldarya.studenttasks.data.TaskRepository
 import com.geraldarya.studenttasks.worker.DeadlineNotificationWorker
@@ -21,11 +22,13 @@ class StudentTaskApplication : Application() {
     }
 
     private fun scheduleDeadlineChecks() {
-        val request = PeriodicWorkRequestBuilder<DeadlineNotificationWorker>(6, TimeUnit.HOURS)
-            .build()
+        val request = PeriodicWorkRequestBuilder<DeadlineNotificationWorker>(
+            ReminderConstants.WORKER_INTERVAL_HOURS,
+            TimeUnit.HOURS
+        ).build()
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            DeadlineNotificationWorker.UNIQUE_WORK_NAME,
+            ReminderConstants.UNIQUE_WORK_NAME,
             ExistingPeriodicWorkPolicy.UPDATE,
             request
         )

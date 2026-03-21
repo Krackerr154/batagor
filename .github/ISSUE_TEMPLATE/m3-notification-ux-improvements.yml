@@ -1,0 +1,45 @@
+name: "Milestone 3: Notification UX Improvements"
+description: "Deduplication + actionable reminders"
+title: "M3: Notification UX Improvements - dedup + actions"
+labels: ["milestone:m3", "type:enhancement", "area:notifications", "area:worker", "priority:high"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for Milestone 3 work from PLAN.md.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: Reduce reminder spam and improve notification usefulness.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Implementation Checklist
+      options:
+        - label: Define and implement notification dedup strategy.
+        - label: Persist dedup metadata safely.
+        - label: Skip notifications inside dedup window.
+        - label: Refine urgency text for 24-hour and 3-day windows.
+        - label: Add tap action to open relevant app context.
+        - label: Validate behavior across repeated worker runs.
+        - label: Preserve notification channel compatibility.
+        - label: Update documentation with new reminder behavior.
+  - type: checkboxes
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      options:
+        - label: Repeated runs do not re-notify the same task in dedup window.
+        - label: Notifications are clear, timely, and actionable.
+        - label: Existing notification channel behavior remains compatible.
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      options:
+        - label: Manual test repeated worker execution.
+        - label: Manual test notification tap action navigation.
+        - label: Confirm no duplicate reminders for unchanged tasks.

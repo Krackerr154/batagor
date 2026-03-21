@@ -1,0 +1,196 @@
+package com.geraldarya.studenttasks.ui.screens
+
+import android.app.DatePickerDialog
+import android.app.TimePickerDialog
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import com.geraldarya.studenttasks.domain.TaskPriority
+import com.geraldarya.studenttasks.domain.TaskStatus
+import com.geraldarya.studenttasks.domain.TaskTag
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TaskFormScreen(
+    onSave: (
+        id: Long,
+        title: String,
+        description: String,
+        dueAtMillis: Long,
+        tag: TaskTag,
+        priority: TaskPriority,
+        status: TaskStatus
+    ) -> Unit,
+    onBack: () -> Unit
+) {
+    val context = LocalContext.current
+    val title = remember { mutableStateOf("") }
+    val description = remember { mutableStateOf("") }
+    val dueDateTime = remember { mutableStateOf(LocalDateTime.now().plusDays(1)) }
+    val selectedTag = remember { mutableStateOf(TaskTag.COURSEWORK) }
+    val selectedPriority = remember { mutableStateOf(TaskPriority.MEDIUM) }
+    val selectedStatus = remember { mutableStateOf(TaskStatus.TODO) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState()),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        Text("Create task", style = MaterialTheme.typography.headlineSmall)
+
+        OutlinedTextField(
+            value = title.value,
+            onValueChange = { title.value = it },
+            label = { Text("Title") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = description.value,
+            onValueChange = { description.value = it },
+            label = { Text("Description") },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 3
+        )
+
+        Button(onClick = {
+            val current = dueDateTime.value
+            DatePickerDialog(
+                context,
+                { _, y, m, d ->
+                    dueDateTime.value = dueDateTime.value.withYear(y).withMonth(m + 1).withDayOfMonth(d)
+                },
+                current.year,
+                current.monthValue - 1,
+                current.dayOfMonth
+            ).show()
+        }) {
+            Text("Pick date")
+        }
+
+        Button(onClick = {
+            val current = dueDateTime.value
+            TimePickerDialog(
+                context,
+                { _, h, min ->
+                    dueDateTime.value = dueDateTime.value.withHour(h).withMinute(min)
+                },
+                current.hour,
+                current.minute,
+                true
+            ).show()
+        }) {
+            Text("Pick time")
+        }
+
+        Text(
+            "Due: ${dueDateTime.value.format(DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm"))}",
+            style = MaterialTheme.typography.bodyMedium
+        )
+
+        EnumDropdown(
+            title = "Tag",
+            value = selectedTag.value.name.replace('_', ' '),
+            options = TaskTag.entries.map { it.name.replace('_', ' ') },
+            onSelected = { selectedTag.value = TaskTag.valueOf(it.replace(' ', '_')) }
+        )
+
+        EnumDropdown(
+            title = "Priority",
+            value = selectedPriority.value.name,
+            options = TaskPriority.entries.map { it.name },
+            onSelected = { selectedPriority.value = TaskPriority.valueOf(it) }
+        )
+
+        EnumDropdown(
+            title = "Status",
+            value = selectedStatus.value.name.replace('_', ' '),
+            options = TaskStatus.entries.map { it.name.replace('_', ' ') },
+            onSelected = { selectedStatus.value = TaskStatus.valueOf(it.replace(' ', '_')) }
+        )
+
+        Button(
+            onClick = {
+                if (title.value.isBlank()) return@Button
+                val dueMillis = dueDateTime.value.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                onSave(
+                    0,
+                    title.value.trim(),
+                    description.value.trim(),
+                    dueMillis,
+                    selectedTag.value,
+                    selectedPriority.value,
+                    selectedStatus.value
+                )
+                onBack()
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Save task")
+        }
+
+        Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+            Text("Back")
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun EnumDropdown(
+    title: String,
+    value: String,
+    options: List<String>,
+    onSelected: (String) -> Unit
+) {
+    val expanded = remember { mutableStateOf(false) }
+
+    ExposedDropdownMenuBox(expanded = expanded.value, onExpandedChange = { expanded.value = !expanded.value }) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(title) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded.value) },
+            modifier = Modifier
+                .menuAnchor()
+                .fillMaxWidth()
+        )
+
+        ExposedDropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option) },
+                    onClick = {
+                        onSelected(option)
+                        expanded.value = false
+                    }
+                )
+            }
+        }
+    }
+}

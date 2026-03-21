@@ -1,0 +1,56 @@
+name: "Milestone 1: Foundation Hardening"
+description: "Validation + worker resilience"
+title: "M1: Foundation Hardening - validation + worker resilience"
+labels: ["milestone:m1", "type:enhancement", "area:worker", "area:ui", "priority:high"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for Milestone 1 work from PLAN.md.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What problem are you solving in this issue?
+      placeholder: Improve worker resilience and form validation behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      value: |
+        - Add shared reminder constants.
+        - Improve defensive error handling in DeadlineNotificationWorker.
+        - Add user-visible task form validation feedback.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Implementation Checklist
+      options:
+        - label: Add shared constants for worker interval/lookahead/urgency windows.
+        - label: Add defensive exception handling around worker query and processing.
+        - label: Return retry or failure intentionally for recoverable/non-recoverable errors.
+        - label: Add title and due-date validation rules in task form.
+        - label: Render inline validation feedback in UI.
+        - label: Prevent save when validation fails.
+        - label: Verify no regression in create-task flow.
+        - label: Update docs for behavior changes.
+  - type: checkboxes
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      options:
+        - label: App builds successfully in debug.
+        - label: Worker failures are handled without app crash.
+        - label: Invalid task input is blocked with clear feedback.
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      options:
+        - label: Run ./gradlew :app:assembleDebug.
+        - label: Manual test valid and invalid task submissions.
+        - label: Manual test worker edge-case handling.

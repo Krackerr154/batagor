@@ -1,0 +1,45 @@
+name: "Milestone 4: Feature Completeness"
+description: "Task detail/edit + sorting enhancements"
+title: "M4: Feature Completeness - edit/detail + sorting"
+labels: ["milestone:m4", "type:feature", "area:ui", "area:data", "priority:medium"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for Milestone 4 work from PLAN.md.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: Add task detail/edit lifecycle and richer sorting behavior.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Implementation Checklist
+      options:
+        - label: Add task detail/edit navigation route.
+        - label: Add entry point from list/task card to open selected task.
+        - label: Prefill form with selected task values.
+        - label: Save edits via view model/repository flow.
+        - label: Add sorting controls (due/priority/created).
+        - label: Add optional overdue grouping section.
+        - label: Add migration strategy if schema changes are needed.
+        - label: Re-verify list and calendar behavior after edits.
+  - type: checkboxes
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      options:
+        - label: Existing tasks can be edited end-to-end in UI.
+        - label: Sorting/filtering remains deterministic and responsive.
+        - label: Any schema changes are migration-safe.
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      options:
+        - label: Run ./gradlew :app:assembleDebug.
+        - label: Manual test edit/cancel/save flows.
+        - label: Manual test sorting and overdue grouping behavior.

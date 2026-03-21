@@ -1,0 +1,45 @@
+name: "Milestone 5: Release Readiness"
+description: "Accessibility, performance, and smoke checks"
+title: "M5: Release Readiness"
+labels: ["milestone:m5", "type:chore", "area:release", "area:accessibility", "area:performance", "priority:high"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for Milestone 5 work from PLAN.md.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: Finalize release confidence with accessibility/performance checks and smoke testing.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Implementation Checklist
+      options:
+        - label: Verify semantic labels for interactive elements.
+        - label: Validate touch targets and contrast.
+        - label: Check accessibility service compatibility where applicable.
+        - label: Inspect and reduce unnecessary recompositions.
+        - label: Evaluate long-list performance and scrolling behavior.
+        - label: Create/update smoke test checklist for critical flows.
+        - label: Run release-oriented build checks.
+        - label: Resolve blocker issues before sign-off.
+  - type: checkboxes
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      options:
+        - label: No blocker findings in smoke tests.
+        - label: Release build succeeds.
+        - label: Accessibility/performance checks are documented.
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      options:
+        - label: Run ./gradlew :app:assembleDebug.
+        - label: Run ./gradlew :app:testDebugUnitTest.
+        - label: Run release build command used by the team.

@@ -1,0 +1,44 @@
+name: "Milestone 2: Core Quality and Tests"
+description: "Repository, ViewModel, and Worker test coverage"
+title: "M2: Core Quality and Tests"
+labels: ["milestone:m2", "type:test", "area:data", "area:viewmodel", "area:worker", "priority:high"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template for Milestone 2 work from PLAN.md.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      placeholder: Add deterministic tests for repository, view model, and worker logic.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checklist
+    attributes:
+      label: Implementation Checklist
+      options:
+        - label: Add/confirm unit test dependencies and test configuration.
+        - label: Add repository tests for insert, update, delete, and query behavior.
+        - label: Add TaskViewModel tests for filtering and sorted output.
+        - label: Add TaskViewModel tests for save/update/delete trigger behavior.
+        - label: Extract worker logic into testable units where necessary.
+        - label: Add worker tests for 24-hour and 3-day urgency logic.
+        - label: Add done-task exclusion and empty-result tests.
+        - label: Ensure deterministic time handling in tests.
+  - type: checkboxes
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      options:
+        - label: Tests run consistently and pass locally.
+        - label: Critical flows are covered (save/filter/status/deadline query).
+        - label: No flaky tests introduced.
+  - type: checkboxes
+    id: verification
+    attributes:
+      label: Verification
+      options:
+        - label: Run ./gradlew :app:testDebugUnitTest.
+        - label: Re-run tests to verify deterministic behavior.

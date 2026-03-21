@@ -53,6 +53,43 @@ fun TaskFormScreen(
     val selectedPriority = remember { mutableStateOf(TaskPriority.MEDIUM) }
     val selectedStatus = remember { mutableStateOf(TaskStatus.TODO) }
 
+    // Validation state
+    val titleError = remember { mutableStateOf<String?>(null) }
+    val dateError = remember { mutableStateOf<String?>(null) }
+
+    // Validation functions
+    fun validateTitle(): Boolean {
+        return when {
+            title.value.isBlank() -> {
+                titleError.value = "Title cannot be empty"
+                false
+            }
+            title.value.trim().length < 3 -> {
+                titleError.value = "Title must be at least 3 characters"
+                false
+            }
+            else -> {
+                titleError.value = null
+                true
+            }
+        }
+    }
+
+    fun validateDate(): Boolean {
+        val dueMillis = dueDateTime.value.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val now = System.currentTimeMillis()
+        return when {
+            dueMillis < now -> {
+                dateError.value = "Due date cannot be in the past"
+                false
+            }
+            else -> {
+                dateError.value = null
+                true
+            }
+        }
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -64,9 +101,24 @@ fun TaskFormScreen(
 
         OutlinedTextField(
             value = title.value,
-            onValueChange = { title.value = it },
+            onValueChange = {
+                title.value = it
+                // Clear error on change
+                if (titleError.value != null) {
+                    titleError.value = null
+                }
+            },
             label = { Text("Title") },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.fillMaxWidth(),
+            isError = titleError.value != null,
+            supportingText = {
+                titleError.value?.let { error ->
+                    Text(
+                        text = error,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
         )
 
         OutlinedTextField(
@@ -83,6 +135,10 @@ fun TaskFormScreen(
                 context,
                 { _, y, m, d ->
                     dueDateTime.value = dueDateTime.value.withYear(y).withMonth(m + 1).withDayOfMonth(d)
+                    // Clear date error when user changes date
+                    if (dateError.value != null) {
+                        dateError.value = null
+                    }
                 },
                 current.year,
                 current.monthValue - 1,
@@ -98,6 +154,10 @@ fun TaskFormScreen(
                 context,
                 { _, h, min ->
                     dueDateTime.value = dueDateTime.value.withHour(h).withMinute(min)
+                    // Clear date error when user changes time
+                    if (dateError.value != null) {
+                        dateError.value = null
+                    }
                 },
                 current.hour,
                 current.minute,
@@ -109,8 +169,17 @@ fun TaskFormScreen(
 
         Text(
             "Due: ${dueDateTime.value.format(DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm"))}",
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodyMedium,
+            color = if (dateError.value != null) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface
         )
+
+        dateError.value?.let { error ->
+            Text(
+                text = error,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
 
         EnumDropdown(
             title = "Tag",
@@ -135,18 +204,24 @@ fun TaskFormScreen(
 
         Button(
             onClick = {
-                if (title.value.isBlank()) return@Button
-                val dueMillis = dueDateTime.value.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-                onSave(
-                    0,
-                    title.value.trim(),
-                    description.value.trim(),
-                    dueMillis,
-                    selectedTag.value,
-                    selectedPriority.value,
-                    selectedStatus.value
-                )
-                onBack()
+                // Validate all fields
+                val isTitleValid = validateTitle()
+                val isDateValid = validateDate()
+
+                // Only save if all validation passes
+                if (isTitleValid && isDateValid) {
+                    val dueMillis = dueDateTime.value.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                    onSave(
+                        0,
+                        title.value.trim(),
+                        description.value.trim(),
+                        dueMillis,
+                        selectedTag.value,
+                        selectedPriority.value,
+                        selectedStatus.value
+                    )
+                    onBack()
+                }
             },
             modifier = Modifier.fillMaxWidth()
         ) {

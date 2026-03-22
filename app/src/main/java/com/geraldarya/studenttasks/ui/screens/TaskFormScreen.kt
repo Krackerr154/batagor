@@ -23,6 +23,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.geraldarya.studenttasks.domain.TaskPriority
 import com.geraldarya.studenttasks.domain.TaskStatus
@@ -168,6 +170,8 @@ fun TaskFormScreen(
                 current.monthValue - 1,
                 current.dayOfMonth
             ).show()
+        }, modifier = Modifier.semantics {
+            contentDescription = "Pick due date for task"
         }) {
             Text("Pick date")
         }
@@ -187,6 +191,8 @@ fun TaskFormScreen(
                 current.minute,
                 true
             ).show()
+        }, modifier = Modifier.semantics {
+            contentDescription = "Pick due time for task"
         }) {
             Text("Pick time")
         }
@@ -247,12 +253,23 @@ fun TaskFormScreen(
                     onBack()
                 }
             },
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics {
+                    contentDescription = if (isEditMode) "Save changes to task" else "Save new task"
+                }
         ) {
             Text("Save task")
         }
 
-        Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+        Button(
+            onClick = onBack,
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics {
+                    contentDescription = if (isEditMode) "Cancel editing and go back" else "Cancel creating task and go back"
+                }
+        ) {
             Text("Back")
         }
     }

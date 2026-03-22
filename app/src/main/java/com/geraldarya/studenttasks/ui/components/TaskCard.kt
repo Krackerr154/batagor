@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -18,6 +19,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.geraldarya.studenttasks.constants.ReminderConstants
@@ -59,19 +62,49 @@ fun TaskCard(
                 style = MaterialTheme.typography.bodySmall
             )
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                TextButton(onClick = { expanded.value = true }) {
+                TextButton(
+                    onClick = { expanded.value = true },
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .semantics {
+                            contentDescription = "Change status for task ${task.title}. Current status is ${task.status.name.replace('_', ' ')}"
+                        }
+                ) {
                     Text("Status: ${task.status.name.replace('_', ' ')}")
                 }
-                TextButton(onClick = { onEdit(task) }) { Text("Edit") }
-                TextButton(onClick = { onDelete(task) }) { Text("Delete") }
+                TextButton(
+                    onClick = { onEdit(task) },
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .semantics {
+                            contentDescription = "Edit task ${task.title}"
+                        }
+                ) { Text("Edit") }
+                TextButton(
+                    onClick = { onDelete(task) },
+                    modifier = Modifier
+                        .heightIn(min = 48.dp)
+                        .semantics {
+                            contentDescription = "Delete task ${task.title}"
+                        }
+                ) { Text("Delete") }
             }
-            DropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {
+            DropdownMenu(
+                expanded = expanded.value,
+                onDismissRequest = { expanded.value = false },
+                modifier = Modifier.semantics {
+                    contentDescription = "Status options for task ${task.title}"
+                }
+            ) {
                 TaskStatus.entries.forEach { status ->
                     DropdownMenuItem(
                         text = { Text(status.name.replace('_', ' ')) },
                         onClick = {
                             onStatusChanged(task, status)
                             expanded.value = false
+                        },
+                        modifier = Modifier.semantics {
+                            contentDescription = "Set status to ${status.name.replace('_', ' ')}"
                         }
                     )
                 }

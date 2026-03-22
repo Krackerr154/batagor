@@ -1,5 +1,6 @@
 package com.geraldarya.studenttasks.ui
 
+import androidx.compose.runtime.Stable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -17,6 +18,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+@Stable
 data class TaskUiState(
     val tasks: List<TaskEntity> = emptyList(),
     val filterTag: TaskTag? = null,

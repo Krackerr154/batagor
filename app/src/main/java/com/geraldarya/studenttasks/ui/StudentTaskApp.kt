@@ -19,7 +19,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -36,7 +35,6 @@ import com.geraldarya.studenttasks.data.TaskEntity
 import com.geraldarya.studenttasks.ui.screens.CalendarScreen
 import com.geraldarya.studenttasks.ui.screens.ListScreen
 import com.geraldarya.studenttasks.ui.screens.TaskFormScreen
-import kotlinx.coroutines.launch
 
 private enum class DashboardDestination(val route: String, val label: String) {
     List("list", "List"),
@@ -148,7 +146,6 @@ private fun AppNavHost(
             arguments = listOf(navArgument("taskId") { type = NavType.LongType })
         ) { backStackEntry ->
             val taskId = backStackEntry.arguments?.getLong("taskId") ?: 0L
-            val scope = rememberCoroutineScope()
             val taskState = remember { mutableStateOf<TaskEntity?>(null) }
             val isLoading = remember { mutableStateOf(true) }
 
@@ -158,10 +155,8 @@ private fun AppNavHost(
                     isLoading.value = false
                     onNavigateBack()
                 } else {
-                    scope.launch {
-                        taskState.value = viewModel.getTask(taskId)
-                        isLoading.value = false
-                    }
+                    taskState.value = viewModel.getTask(taskId)
+                    isLoading.value = false
                 }
             }
 

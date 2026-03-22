@@ -11,6 +11,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.geraldarya.studenttasks.data.TaskEntity
 import com.geraldarya.studenttasks.domain.TaskStatus
@@ -48,7 +50,8 @@ fun CalendarScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = date.format(DateTimeFormatter.ofPattern("EEEE, dd MMM yyyy")),
-                    style = MaterialTheme.typography.titleSmall
+                    style = MaterialTheme.typography.titleSmall,
+                    modifier = Modifier.semantics { heading() }
                 )
                 val dayTasks = tasksByDate[date].orEmpty()
                 if (dayTasks.isEmpty()) {

@@ -16,6 +16,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.geraldarya.studenttasks.data.TaskEntity
 import com.geraldarya.studenttasks.domain.SortOrder
@@ -61,7 +64,12 @@ fun ListScreen(
                         "⚠️ Overdue (${overdueTasks.size})",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier
+                            .padding(top = 8.dp)
+                            .semantics(mergeDescendants = true) {
+                                heading()
+                                contentDescription = "Overdue section: ${overdueTasks.size} tasks"
+                            }
                     )
                 }
                 items(overdueTasks, key = { it.id }) { task ->
@@ -81,7 +89,11 @@ fun ListScreen(
                         Text(
                             "Upcoming & Completed",
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(top = 16.dp)
+                            modifier = Modifier
+                                .padding(top = 16.dp)
+                                .semantics {
+                                    heading()
+                                }
                         )
                     }
                 }
@@ -117,6 +129,13 @@ private fun SortRow(selectedSort: SortOrder, onSortChanged: (SortOrder) -> Unit)
                             SortOrder.CREATED_DATE -> "Created"
                         }
                     )
+                },
+                modifier = Modifier.semantics {
+                    contentDescription = when (sort) {
+                        SortOrder.DUE_DATE -> "Sort tasks by due date"
+                        SortOrder.PRIORITY -> "Sort tasks by priority"
+                        SortOrder.CREATED_DATE -> "Sort tasks by creation date"
+                    } + if (selectedSort == sort) " (currently selected)" else ""
                 }
             )
         }
@@ -132,7 +151,10 @@ private fun TagFilterRow(selected: TaskTag?, onFilterChanged: (TaskTag?) -> Unit
                 label = { Text("All") },
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = if (selected == null) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
-                )
+                ),
+                modifier = Modifier.semantics {
+                    contentDescription = "Filter all tasks" + if (selected == null) " (currently selected)" else ""
+                }
             )
         }
         items(TaskTag.entries) { tag ->
@@ -141,7 +163,10 @@ private fun TagFilterRow(selected: TaskTag?, onFilterChanged: (TaskTag?) -> Unit
                 label = { Text(tag.name.replace('_', ' ')) },
                 colors = AssistChipDefaults.assistChipColors(
                     containerColor = if (selected == tag) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerLow
-                )
+                ),
+                modifier = Modifier.semantics {
+                    contentDescription = "Filter tasks by ${tag.name.replace('_', ' ')}" + if (selected == tag) " (currently selected)" else ""
+                }
             )
         }
     }

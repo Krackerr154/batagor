@@ -22,7 +22,7 @@ Core package namespace:
 
 Package responsibilities:
 - data: Room entities, DAO, database, converters, repository.
-- domain: enums and business taxonomy (priority, status, tag).
+- domain: enums and business taxonomy (priority, status, tag, sort order).
 - ui: Compose app shell, screens, view model, and components.
 - notifications: notification channel and notification publishing.
 - worker: periodic deadline scan and notification trigger.
@@ -64,11 +64,13 @@ TaskEntity fields:
 - priority (TaskPriority)
 - status (TaskStatus)
 - createdAtMillis (Long, default current time)
+- lastNotifiedAtMillis (Long, default 0, tracks last notification timestamp)
 
 Domain enums:
 - TaskPriority: HIGH, MEDIUM, LOW
 - TaskStatus: TODO, IN_PROGRESS, DONE
 - TaskTag: COURSEWORK, LAB_RESEARCH, THESIS, EXAMS, PERSONAL
+- SortOrder: DUE_DATE, PRIORITY, CREATED_DATE
 
 ## 5. Runtime Flows
 ### Task Creation Flow
@@ -87,19 +89,29 @@ Domain enums:
 ### Deadline Notification Flow
 1. WorkManager triggers DeadlineNotificationWorker every 6 hours.
 2. Worker queries tasks not DONE and due within 3 days.
-3. Worker calculates urgency labels.
-4. NotificationHelper publishes one notification per upcoming task.
+3. Worker applies deduplication logic:
+   - Skips tasks notified within last 6 hours (dedup window).
+   - Only notifies tasks that are new or outside dedup window.
+4. Worker calculates urgency labels with visual indicators:
+   - ⚠️ Overdue (past due date)
+   - 🔴 Due within 24 hours
+   - 🟡 Due within 3 days
+5. NotificationHelper publishes one notification per upcoming task.
+6. Notification includes tap action to open app (MainActivity).
+7. Worker updates lastNotifiedAtMillis timestamp for each notified task.
 
 ## 6. Navigation Architecture
 Route graph:
 - list (start destination)
 - calendar
 - create
+- edit/{taskId} (task editing route with Long parameter)
 
 Navigation behavior:
-- Bottom bar visible on list and calendar.
-- FAB hidden on create route.
-- Back from create returns to previous route.
+- Bottom bar visible on list and calendar routes only.
+- FAB hidden on create and edit routes.
+- Back from create/edit returns to previous route.
+- Edit route loads task by ID via LaunchedEffect and ViewModel.getTask().
 
 ## 7. Cross-Cutting Concerns
 ### Permissions
@@ -132,14 +144,27 @@ Build targets:
 
 ## 9. Risks and Improvement Opportunities
 Current risks:
-- Worker can emit repeated notifications for same task across runs.
-- No snooze/deduplication state for notifications.
-- Form validation is minimal (title-only).
-- Missing dedicated tests for repository/view model/worker.
+- Form validation is minimal (title and past-date only).
+- No snooze or dismiss-forever options for notifications.
+- Missing dedicated integration tests for worker end-to-end flow.
+
+Addressed in Milestone 3:
+- ✅ Notification deduplication prevents spam during repeated worker runs.
+- ✅ Tap action allows users to open app directly from notification.
+- ✅ Enhanced urgency messaging with visual indicators (emojis).
+- ✅ lastNotifiedAtMillis timestamp persisted in database (migration 1→2).
+
+Addressed in Milestone 4:
+- ✅ Task editing capability via edit/{taskId} navigation route.
+- ✅ TaskFormScreen supports both create and edit modes.
+- ✅ Sorting controls in ListScreen (by due date, priority, created date).
+- ✅ ViewModel uses flatMapLatest to switch repository Flow based on sort order.
+- ✅ Overdue task grouping with visual section headers.
+- ✅ Repository exposes multiple sorted query methods.
 
 Suggested next architecture increments:
 - Add use-case layer for domain actions if complexity grows.
-- Add notification dedupe strategy (store last notified timestamp).
-- Add editable task details route and deep-link capable navigation.
 - Introduce explicit error and loading UI states.
 - Add dependency injection (for example Hilt) for scalability.
+- Add notification action buttons (e.g., "Mark as Done", "Snooze").
+- Add accessibility improvements and performance optimizations (Milestone 5).

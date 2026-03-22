@@ -8,31 +8,43 @@ import com.geraldarya.studenttasks.data.TaskRepository
 import com.geraldarya.studenttasks.domain.TaskPriority
 import com.geraldarya.studenttasks.domain.TaskStatus
 import com.geraldarya.studenttasks.domain.TaskTag
+import com.geraldarya.studenttasks.domain.SortOrder
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 data class TaskUiState(
     val tasks: List<TaskEntity> = emptyList(),
-    val filterTag: TaskTag? = null
+    val filterTag: TaskTag? = null,
+    val sortOrder: SortOrder = SortOrder.DUE_DATE
 )
 
 class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
     private val filterTag = MutableStateFlow<TaskTag?>(null)
+    private val sortOrder = MutableStateFlow(SortOrder.DUE_DATE)
 
-    val uiState: StateFlow<TaskUiState> = combine(
-        repository.observeTasks(),
-        filterTag
-    ) { tasks, selectedTag ->
-        val filtered = if (selectedTag == null) tasks else tasks.filter { it.tag == selectedTag }
-        TaskUiState(tasks = filtered.sortedBy { it.dueAtMillis }, filterTag = selectedTag)
+    val uiState: StateFlow<TaskUiState> = sortOrder.flatMapLatest { sort ->
+        val tasksFlow = when (sort) {
+            SortOrder.DUE_DATE -> repository.observeTasks()
+            SortOrder.PRIORITY -> repository.observeTasksByPriority()
+            SortOrder.CREATED_DATE -> repository.observeTasksByCreatedDate()
+        }
+        combine(tasksFlow, filterTag) { tasks, selectedTag ->
+            val filtered = if (selectedTag == null) tasks else tasks.filter { it.tag == selectedTag }
+            TaskUiState(tasks = filtered, filterTag = selectedTag, sortOrder = sort)
+        }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TaskUiState())
 
     fun setFilter(tag: TaskTag?) {
         filterTag.value = tag
+    }
+
+    fun setSortOrder(order: SortOrder) {
+        sortOrder.value = order
     }
 
     fun saveTask(
@@ -45,17 +57,36 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
         status: TaskStatus
     ) {
         viewModelScope.launch {
-            repository.save(
-                TaskEntity(
-                    id = id,
-                    title = title,
-                    description = description,
-                    dueAtMillis = dueAtMillis,
-                    tag = tag,
-                    priority = priority,
-                    status = status
+            if (id == 0L) {
+                // Creating new task - use defaults for createdAtMillis and lastNotifiedAtMillis
+                repository.save(
+                    TaskEntity(
+                        id = id,
+                        title = title,
+                        description = description,
+                        dueAtMillis = dueAtMillis,
+                        tag = tag,
+                        priority = priority,
+                        status = status
+                    )
                 )
-            )
+            } else {
+                // Editing existing task - preserve createdAtMillis and lastNotifiedAtMillis
+                val existing = repository.getTask(id)
+                repository.save(
+                    TaskEntity(
+                        id = id,
+                        title = title,
+                        description = description,
+                        dueAtMillis = dueAtMillis,
+                        tag = tag,
+                        priority = priority,
+                        status = status,
+                        createdAtMillis = existing?.createdAtMillis ?: System.currentTimeMillis(),
+                        lastNotifiedAtMillis = existing?.lastNotifiedAtMillis ?: 0
+                    )
+                )
+            }
         }
     }
 
@@ -69,6 +100,10 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
         viewModelScope.launch {
             repository.delete(task)
         }
+    }
+
+    suspend fun getTask(id: Long): TaskEntity? {
+        return repository.getTask(id)
     }
 }
 

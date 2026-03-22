@@ -13,6 +13,20 @@ interface TaskDao {
     @Query("SELECT * FROM tasks ORDER BY dueAtMillis ASC")
     fun observeAll(): Flow<List<TaskEntity>>
 
+    @Query(
+        "SELECT * FROM tasks " +
+        "ORDER BY CASE priority " +
+        "WHEN 'HIGH' THEN 3 " +
+        "WHEN 'MEDIUM' THEN 2 " +
+        "WHEN 'LOW' THEN 1 " +
+        "ELSE 0 END DESC, " +
+        "dueAtMillis ASC"
+    )
+    fun observeAllByPriority(): Flow<List<TaskEntity>>
+
+    @Query("SELECT * FROM tasks ORDER BY createdAtMillis DESC")
+    fun observeAllByCreatedDate(): Flow<List<TaskEntity>>
+
     @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): TaskEntity?
 
@@ -27,4 +41,7 @@ interface TaskDao {
 
     @Query("SELECT * FROM tasks WHERE status != 'DONE' AND dueAtMillis BETWEEN :fromMillis AND :toMillis ORDER BY dueAtMillis ASC")
     suspend fun getUpcomingNotDone(fromMillis: Long, toMillis: Long): List<TaskEntity>
+
+    @Query("UPDATE tasks SET lastNotifiedAtMillis = :timestamp WHERE id = :taskId")
+    suspend fun updateLastNotified(taskId: Long, timestamp: Long)
 }

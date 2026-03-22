@@ -36,6 +36,14 @@ object ReminderConstants {
     const val LOOKAHEAD_WINDOW_MILLIS = LOOKAHEAD_WINDOW_DAYS * DAY_MILLIS
 
     /**
+     * Deduplication window: skip re-notifying tasks within this window.
+     * Set to match worker interval (6 hours) to prevent notification spam
+     * during repeated worker runs for the same task.
+     */
+    const val DEDUP_WINDOW_HOURS = 6L
+    const val DEDUP_WINDOW_MILLIS = DEDUP_WINDOW_HOURS * HOUR_MILLIS
+
+    /**
      * Worker unique name for WorkManager.
      */
     const val UNIQUE_WORK_NAME = "deadline_check_worker"

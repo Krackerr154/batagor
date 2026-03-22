@@ -44,6 +44,12 @@ class DeadlineNotificationWorker(
                         return@forEach
                     }
 
+                    // Check deduplication: skip if notified recently
+                    if (!DeadlineHelper.shouldNotifyTask(task, now)) {
+                        Log.d(TAG, "Skipping recently notified task: id=${task.id}")
+                        return@forEach
+                    }
+
                     val urgency = DeadlineHelper.determineUrgency(task.dueAtMillis, now)
 
                     if (urgency != null) {
@@ -53,7 +59,14 @@ class DeadlineNotificationWorker(
                             title = task.title,
                             message = "$urgency: ${task.description.ifBlank { "Open app for details" }}"
                         )
-                        notificationsSent++
+
+                        // Update last notified timestamp
+                        try {
+                            repository.updateLastNotified(task.id, now)
+                            notificationsSent++
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed to update lastNotified for task id=${task.id}", e)
+                        }
                     }
                 } catch (e: Exception) {
                     // Log but continue processing other tasks

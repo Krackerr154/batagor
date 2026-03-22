@@ -43,15 +43,35 @@ fun TaskFormScreen(
         priority: TaskPriority,
         status: TaskStatus
     ) -> Unit,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    editingTaskId: Long = 0L,
+    editingTaskTitle: String = "",
+    editingTaskDescription: String = "",
+    editingTaskDueAtMillis: Long = 0L,
+    editingTaskTag: TaskTag = TaskTag.COURSEWORK,
+    editingTaskPriority: TaskPriority = TaskPriority.MEDIUM,
+    editingTaskStatus: TaskStatus = TaskStatus.TODO
 ) {
     val context = LocalContext.current
-    val title = remember { mutableStateOf("") }
-    val description = remember { mutableStateOf("") }
-    val dueDateTime = remember { mutableStateOf(LocalDateTime.now().plusDays(1)) }
-    val selectedTag = remember { mutableStateOf(TaskTag.COURSEWORK) }
-    val selectedPriority = remember { mutableStateOf(TaskPriority.MEDIUM) }
-    val selectedStatus = remember { mutableStateOf(TaskStatus.TODO) }
+    val isEditMode = editingTaskId != 0L
+
+    val title = remember { mutableStateOf(if (isEditMode) editingTaskTitle else "") }
+    val description = remember { mutableStateOf(if (isEditMode) editingTaskDescription else "") }
+    val dueDateTime = remember {
+        mutableStateOf(
+            if (isEditMode && editingTaskDueAtMillis > 0) {
+                LocalDateTime.ofInstant(
+                    java.time.Instant.ofEpochMilli(editingTaskDueAtMillis),
+                    ZoneId.systemDefault()
+                )
+            } else {
+                LocalDateTime.now().plusDays(1)
+            }
+        )
+    }
+    val selectedTag = remember { mutableStateOf(if (isEditMode) editingTaskTag else TaskTag.COURSEWORK) }
+    val selectedPriority = remember { mutableStateOf(if (isEditMode) editingTaskPriority else TaskPriority.MEDIUM) }
+    val selectedStatus = remember { mutableStateOf(if (isEditMode) editingTaskStatus else TaskStatus.TODO) }
 
     // Validation state
     val titleError = remember { mutableStateOf<String?>(null) }
@@ -79,7 +99,8 @@ fun TaskFormScreen(
         val dueMillis = dueDateTime.value.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
         val now = System.currentTimeMillis()
         return when {
-            dueMillis < now -> {
+            !isEditMode && dueMillis < now -> {
+                // Only validate past dates for new tasks, not when editing
                 dateError.value = "Due date cannot be in the past"
                 false
             }
@@ -97,7 +118,10 @@ fun TaskFormScreen(
             .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Create task", style = MaterialTheme.typography.headlineSmall)
+        Text(
+            if (isEditMode) "Edit task" else "Create task",
+            style = MaterialTheme.typography.headlineSmall
+        )
 
         OutlinedTextField(
             value = title.value,
@@ -212,7 +236,7 @@ fun TaskFormScreen(
                 if (isTitleValid && isDateValid) {
                     val dueMillis = dueDateTime.value.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
                     onSave(
-                        0,
+                        editingTaskId, // Use the editing task ID (0 for new tasks)
                         title.value.trim(),
                         description.value.trim(),
                         dueMillis,

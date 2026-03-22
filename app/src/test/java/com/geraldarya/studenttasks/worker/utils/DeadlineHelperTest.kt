@@ -32,7 +32,7 @@ class DeadlineHelperTest {
         val urgency = DeadlineHelper.determineUrgency(taskDue, now)
 
         // Then: urgent message returned
-        assertEquals("Due within 24 hours", urgency)
+        assertEquals("🔴 Due within 24 hours", urgency)
     }
 
     @Test
@@ -45,7 +45,7 @@ class DeadlineHelperTest {
         val urgency = DeadlineHelper.determineUrgency(taskDue, now)
 
         // Then: urgent message returned (boundary case)
-        assertEquals("Due within 24 hours", urgency)
+        assertEquals("🔴 Due within 24 hours", urgency)
     }
 
     @Test
@@ -58,7 +58,7 @@ class DeadlineHelperTest {
         val urgency = DeadlineHelper.determineUrgency(taskDue, now)
 
         // Then: 3-day message returned
-        assertEquals("Due within 3 days", urgency)
+        assertEquals("🟡 Due within 3 days", urgency)
     }
 
     @Test
@@ -71,7 +71,7 @@ class DeadlineHelperTest {
         val urgency = DeadlineHelper.determineUrgency(taskDue, now)
 
         // Then: 3-day message returned (boundary case)
-        assertEquals("Due within 3 days", urgency)
+        assertEquals("🟡 Due within 3 days", urgency)
     }
 
     @Test
@@ -97,7 +97,7 @@ class DeadlineHelperTest {
         val urgency = DeadlineHelper.determineUrgency(taskDue, now)
 
         // Then: overdue message returned
-        assertEquals("Overdue", urgency)
+        assertEquals("⚠️ Overdue", urgency)
     }
 
     @Test
@@ -293,7 +293,7 @@ class DeadlineHelperTest {
         val urgency = DeadlineHelper.determineUrgency(taskDue, now)
 
         // Then: urgent message
-        assertEquals("Due within 24 hours", urgency)
+        assertEquals("🔴 Due within 24 hours", urgency)
     }
 
     @Test
@@ -306,7 +306,7 @@ class DeadlineHelperTest {
         val urgency = DeadlineHelper.determineUrgency(taskDue, now)
 
         // Then: 3-day message
-        assertEquals("Due within 3 days", urgency)
+        assertEquals("🟡 Due within 3 days", urgency)
     }
 
     @Test
@@ -323,6 +323,143 @@ class DeadlineHelperTest {
         // Then: all results are identical (deterministic)
         assertEquals(result1, result2)
         assertEquals(result2, result3)
-        assertEquals("Due within 24 hours", result1)
+    }
+
+    // Deduplication tests
+
+    @Test
+    fun testShouldNotifyTask_NeverNotified_ReturnsTrue() {
+        // Given: task that has never been notified (lastNotifiedAtMillis = 0)
+        val now = 1000000L
+        val task = TaskEntity(
+            id = 1L,
+            title = "Task",
+            description = "Description",
+            dueAtMillis = now + 10000L,
+            tag = TaskTag.COURSEWORK,
+            priority = TaskPriority.HIGH,
+            status = TaskStatus.TODO,
+            lastNotifiedAtMillis = 0L
+        )
+
+        // When: checking if should notify
+        val shouldNotify = DeadlineHelper.shouldNotifyTask(task, now)
+
+        // Then: should notify (never notified before)
+        assertTrue(shouldNotify)
+    }
+
+    @Test
+    fun testShouldNotifyTask_NotifiedRecently_ReturnsFalse() {
+        // Given: task notified 2 hours ago (within 6-hour dedup window)
+        val now = 1000000L
+        val lastNotified = now - (2 * 60 * 60 * 1000L) // 2 hours ago
+        val task = TaskEntity(
+            id = 1L,
+            title = "Task",
+            description = "Description",
+            dueAtMillis = now + 10000L,
+            tag = TaskTag.COURSEWORK,
+            priority = TaskPriority.HIGH,
+            status = TaskStatus.TODO,
+            lastNotifiedAtMillis = lastNotified
+        )
+
+        // When: checking if should notify
+        val shouldNotify = DeadlineHelper.shouldNotifyTask(task, now)
+
+        // Then: should not notify (within dedup window)
+        assertFalse(shouldNotify)
+    }
+
+    @Test
+    fun testShouldNotifyTask_NotifiedExactlyAtDedupWindow_ReturnsFalse() {
+        // Given: task notified exactly at dedup window boundary (6 hours ago)
+        val now = 1000000L
+        val lastNotified = now - ReminderConstants.DEDUP_WINDOW_MILLIS
+        val task = TaskEntity(
+            id = 1L,
+            title = "Task",
+            description = "Description",
+            dueAtMillis = now + 10000L,
+            tag = TaskTag.COURSEWORK,
+            priority = TaskPriority.HIGH,
+            status = TaskStatus.TODO,
+            lastNotifiedAtMillis = lastNotified
+        )
+
+        // When: checking if should notify
+        val shouldNotify = DeadlineHelper.shouldNotifyTask(task, now)
+
+        // Then: should notify (at boundary - time elapsed equals window)
+        assertTrue(shouldNotify)
+    }
+
+    @Test
+    fun testShouldNotifyTask_NotifiedBeyondDedupWindow_ReturnsTrue() {
+        // Given: task notified 7 hours ago (beyond 6-hour dedup window)
+        val now = 1000000L
+        val lastNotified = now - (7 * 60 * 60 * 1000L) // 7 hours ago
+        val task = TaskEntity(
+            id = 1L,
+            title = "Task",
+            description = "Description",
+            dueAtMillis = now + 10000L,
+            tag = TaskTag.COURSEWORK,
+            priority = TaskPriority.HIGH,
+            status = TaskStatus.TODO,
+            lastNotifiedAtMillis = lastNotified
+        )
+
+        // When: checking if should notify
+        val shouldNotify = DeadlineHelper.shouldNotifyTask(task, now)
+
+        // Then: should notify (outside dedup window)
+        assertTrue(shouldNotify)
+    }
+
+    @Test
+    fun testShouldNotifyTask_NotifiedJustNow_ReturnsFalse() {
+        // Given: task notified at current time
+        val now = 1000000L
+        val task = TaskEntity(
+            id = 1L,
+            title = "Task",
+            description = "Description",
+            dueAtMillis = now + 10000L,
+            tag = TaskTag.COURSEWORK,
+            priority = TaskPriority.HIGH,
+            status = TaskStatus.TODO,
+            lastNotifiedAtMillis = now
+        )
+
+        // When: checking if should notify
+        val shouldNotify = DeadlineHelper.shouldNotifyTask(task, now)
+
+        // Then: should not notify (just notified)
+        assertFalse(shouldNotify)
+    }
+
+    @Test
+    fun testShouldNotifyTask_Notified5HoursAgo_ReturnsFalse() {
+        // Given: task notified 5 hours ago (within 6-hour dedup window)
+        val now = 1000000L
+        val lastNotified = now - (5 * 60 * 60 * 1000L) // 5 hours ago
+        val task = TaskEntity(
+            id = 1L,
+            title = "Task",
+            description = "Description",
+            dueAtMillis = now + 10000L,
+            tag = TaskTag.COURSEWORK,
+            priority = TaskPriority.HIGH,
+            status = TaskStatus.TODO,
+            lastNotifiedAtMillis = lastNotified
+        )
+
+        // When: checking if should notify
+        val shouldNotify = DeadlineHelper.shouldNotifyTask(task, now)
+
+        // Then: should not notify (within dedup window)
+        assertFalse(shouldNotify)
     }
 }

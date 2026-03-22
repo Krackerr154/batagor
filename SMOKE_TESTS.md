@@ -182,7 +182,7 @@ This document outlines critical flows and features to verify before release.
 
 ### Unit Tests
 - [ ] Run `./gradlew :app:testDebugUnitTest`
-- [ ] Verify all tests pass (53 tests expected)
+- [ ] Verify all tests pass (check Gradle test output or HTML report for details)
 - [ ] Check test coverage report
 
 ### Release Build (if configured)

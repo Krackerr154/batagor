@@ -163,11 +163,11 @@ StudentTaskManager has undergone comprehensive accessibility, performance, and r
 **Status**: ❌ Unable to run due to build environment issue (Maven repository access)
 
 **Expected Results** (based on codebase analysis):
-- **Total Tests**: 53
-  - TaskViewModelTest: 18 tests
-  - TaskRepositoryTest: 9 tests
-  - DeadlineHelperTest: 18 tests
-  - DeadlineNotificationWorkerTest: 15 tests (behavior documentation)
+- **Total Tests**: 67 (based on @Test annotations in current sources)
+  - TaskViewModelTest: 18 tests - core ViewModel behaviors (filtering, sorting, CRUD, state flow)
+  - TaskRepositoryTest: 9 tests - repository and database behaviors (queries, Flow emission)
+  - DeadlineHelperTest: 26 tests - deadline and urgency helper logic (urgency calculation, validation, deduplication)
+  - DeadlineNotificationWorkerTest: 14 tests - worker scheduling, error handling, and notification behavior
 
 **Test Coverage**:
 - ViewModel: Filtering, sorting, CRUD operations, state flow

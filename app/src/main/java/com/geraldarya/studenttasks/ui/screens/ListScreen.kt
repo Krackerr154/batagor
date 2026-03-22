@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.geraldarya.studenttasks.data.TaskEntity
@@ -66,6 +67,7 @@ fun ListScreen(
                         modifier = Modifier
                             .padding(top = 8.dp)
                             .semantics(mergeDescendants = true) {
+                                heading()
                                 contentDescription = "Overdue section: ${overdueTasks.size} tasks"
                             }
                     )
@@ -87,7 +89,11 @@ fun ListScreen(
                         Text(
                             "Upcoming & Completed",
                             style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.padding(top = 16.dp)
+                            modifier = Modifier
+                                .padding(top = 16.dp)
+                                .semantics {
+                                    heading()
+                                }
                         )
                     }
                 }

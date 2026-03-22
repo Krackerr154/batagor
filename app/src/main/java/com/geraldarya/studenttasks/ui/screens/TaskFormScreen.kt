@@ -170,9 +170,11 @@ fun TaskFormScreen(
                 current.monthValue - 1,
                 current.dayOfMonth
             ).show()
-        }, modifier = Modifier.semantics {
-            contentDescription = "Pick due date for task"
-        }) {
+        }, modifier = Modifier
+            .heightIn(min = 48.dp)
+            .semantics {
+                contentDescription = "Pick due date for task"
+            }) {
             Text("Pick date")
         }
 
@@ -191,9 +193,11 @@ fun TaskFormScreen(
                 current.minute,
                 true
             ).show()
-        }, modifier = Modifier.semantics {
-            contentDescription = "Pick due time for task"
-        }) {
+        }, modifier = Modifier
+            .heightIn(min = 48.dp)
+            .semantics {
+                contentDescription = "Pick due time for task"
+            }) {
             Text("Pick time")
         }
 
@@ -255,6 +259,7 @@ fun TaskFormScreen(
             },
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(min = 48.dp)
                 .semantics {
                     contentDescription = if (isEditMode) "Save changes to task" else "Save new task"
                 }
@@ -266,6 +271,7 @@ fun TaskFormScreen(
             onClick = onBack,
             modifier = Modifier
                 .fillMaxWidth()
+                .heightIn(min = 48.dp)
                 .semantics {
                     contentDescription = if (isEditMode) "Cancel editing and go back" else "Cancel creating task and go back"
                 }

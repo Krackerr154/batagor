@@ -31,7 +31,8 @@ import java.time.format.DateTimeFormatter
 fun TaskCard(
     task: TaskEntity,
     onStatusChanged: (TaskEntity, TaskStatus) -> Unit,
-    onDelete: (TaskEntity) -> Unit
+    onDelete: (TaskEntity) -> Unit,
+    onEdit: (TaskEntity) -> Unit
 ) {
     val dueColor = deadlineColor(task.dueAtMillis, task.status)
     val expanded = remember { mutableStateOf(false) }
@@ -61,6 +62,7 @@ fun TaskCard(
                 TextButton(onClick = { expanded.value = true }) {
                     Text("Status: ${task.status.name.replace('_', ' ')}")
                 }
+                TextButton(onClick = { onEdit(task) }) { Text("Edit") }
                 TextButton(onClick = { onDelete(task) }) { Text("Delete") }
             }
             DropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {

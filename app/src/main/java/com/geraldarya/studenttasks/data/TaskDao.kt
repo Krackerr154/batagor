@@ -13,6 +13,12 @@ interface TaskDao {
     @Query("SELECT * FROM tasks ORDER BY dueAtMillis ASC")
     fun observeAll(): Flow<List<TaskEntity>>
 
+    @Query("SELECT * FROM tasks ORDER BY priority DESC, dueAtMillis ASC")
+    fun observeAllByPriority(): Flow<List<TaskEntity>>
+
+    @Query("SELECT * FROM tasks ORDER BY createdAtMillis DESC")
+    fun observeAllByCreatedDate(): Flow<List<TaskEntity>>
+
     @Query("SELECT * FROM tasks WHERE id = :id LIMIT 1")
     suspend fun getById(id: Long): TaskEntity?
 

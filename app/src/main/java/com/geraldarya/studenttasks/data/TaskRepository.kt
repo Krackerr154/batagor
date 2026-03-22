@@ -5,6 +5,10 @@ import kotlinx.coroutines.flow.Flow
 class TaskRepository(private val dao: TaskDao) {
     fun observeTasks(): Flow<List<TaskEntity>> = dao.observeAll()
 
+    fun observeTasksByPriority(): Flow<List<TaskEntity>> = dao.observeAllByPriority()
+
+    fun observeTasksByCreatedDate(): Flow<List<TaskEntity>> = dao.observeAllByCreatedDate()
+
     suspend fun getTask(id: Long): TaskEntity? = dao.getById(id)
 
     suspend fun save(task: TaskEntity): Long {

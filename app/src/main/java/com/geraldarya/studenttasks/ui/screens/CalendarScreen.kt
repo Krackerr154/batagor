@@ -23,7 +23,8 @@ import java.time.format.DateTimeFormatter
 @Composable
 fun CalendarScreen(
     tasks: List<TaskEntity>,
-    onStatusChanged: (TaskEntity, TaskStatus) -> Unit
+    onStatusChanged: (TaskEntity, TaskStatus) -> Unit,
+    onEdit: (TaskEntity) -> Unit = {}
 ) {
     val tasksByDate = tasks.groupBy {
         Instant.ofEpochMilli(it.dueAtMillis).atZone(ZoneId.systemDefault()).toLocalDate()
@@ -58,7 +59,12 @@ fun CalendarScreen(
                     )
                 } else {
                     dayTasks.forEach { task ->
-                        TaskCard(task = task, onStatusChanged = onStatusChanged, onDelete = {})
+                        TaskCard(
+                            task = task,
+                            onStatusChanged = onStatusChanged,
+                            onDelete = {},
+                            onEdit = onEdit
+                        )
                     }
                 }
             }

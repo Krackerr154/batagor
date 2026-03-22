@@ -22,7 +22,7 @@ Core package namespace:
 
 Package responsibilities:
 - data: Room entities, DAO, database, converters, repository.
-- domain: enums and business taxonomy (priority, status, tag).
+- domain: enums and business taxonomy (priority, status, tag, sort order).
 - ui: Compose app shell, screens, view model, and components.
 - notifications: notification channel and notification publishing.
 - worker: periodic deadline scan and notification trigger.
@@ -70,6 +70,7 @@ Domain enums:
 - TaskPriority: HIGH, MEDIUM, LOW
 - TaskStatus: TODO, IN_PROGRESS, DONE
 - TaskTag: COURSEWORK, LAB_RESEARCH, THESIS, EXAMS, PERSONAL
+- SortOrder: DUE_DATE, PRIORITY, CREATED_DATE
 
 ## 5. Runtime Flows
 ### Task Creation Flow
@@ -104,11 +105,13 @@ Route graph:
 - list (start destination)
 - calendar
 - create
+- edit/{taskId} (task editing route with Long parameter)
 
 Navigation behavior:
-- Bottom bar visible on list and calendar.
-- FAB hidden on create route.
-- Back from create returns to previous route.
+- Bottom bar visible on list and calendar routes only.
+- FAB hidden on create and edit routes.
+- Back from create/edit returns to previous route.
+- Edit route loads task by ID via LaunchedEffect and ViewModel.getTask().
 
 ## 7. Cross-Cutting Concerns
 ### Permissions
@@ -151,9 +154,17 @@ Addressed in Milestone 3:
 - ✅ Enhanced urgency messaging with visual indicators (emojis).
 - ✅ lastNotifiedAtMillis timestamp persisted in database (migration 1→2).
 
+Addressed in Milestone 4:
+- ✅ Task editing capability via edit/{taskId} navigation route.
+- ✅ TaskFormScreen supports both create and edit modes.
+- ✅ Sorting controls in ListScreen (by due date, priority, created date).
+- ✅ ViewModel uses flatMapLatest to switch repository Flow based on sort order.
+- ✅ Overdue task grouping with visual section headers.
+- ✅ Repository exposes multiple sorted query methods.
+
 Suggested next architecture increments:
 - Add use-case layer for domain actions if complexity grows.
-- Add editable task details route and deep-link capable navigation.
 - Introduce explicit error and loading UI states.
 - Add dependency injection (for example Hilt) for scalability.
 - Add notification action buttons (e.g., "Mark as Done", "Snooze").
+- Add accessibility improvements and performance optimizations (Milestone 5).

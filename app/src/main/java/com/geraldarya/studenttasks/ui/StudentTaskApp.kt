@@ -132,7 +132,10 @@ private fun AppNavHost(
         composable(DashboardDestination.Calendar.route) {
             CalendarScreen(
                 tasks = uiState.tasks,
-                onStatusChanged = viewModel::updateStatus
+                onStatusChanged = viewModel::updateStatus,
+                onEdit = { task ->
+                    navController.navigate("edit/${task.id}")
+                }
             )
         }
         composable("create") {

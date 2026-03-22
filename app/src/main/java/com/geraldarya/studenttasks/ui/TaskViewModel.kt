@@ -57,17 +57,36 @@ class TaskViewModel(private val repository: TaskRepository) : ViewModel() {
         status: TaskStatus
     ) {
         viewModelScope.launch {
-            repository.save(
-                TaskEntity(
-                    id = id,
-                    title = title,
-                    description = description,
-                    dueAtMillis = dueAtMillis,
-                    tag = tag,
-                    priority = priority,
-                    status = status
+            if (id == 0L) {
+                // Creating new task - use defaults for createdAtMillis and lastNotifiedAtMillis
+                repository.save(
+                    TaskEntity(
+                        id = id,
+                        title = title,
+                        description = description,
+                        dueAtMillis = dueAtMillis,
+                        tag = tag,
+                        priority = priority,
+                        status = status
+                    )
                 )
-            )
+            } else {
+                // Editing existing task - preserve createdAtMillis and lastNotifiedAtMillis
+                val existing = repository.getTask(id)
+                repository.save(
+                    TaskEntity(
+                        id = id,
+                        title = title,
+                        description = description,
+                        dueAtMillis = dueAtMillis,
+                        tag = tag,
+                        priority = priority,
+                        status = status,
+                        createdAtMillis = existing?.createdAtMillis ?: System.currentTimeMillis(),
+                        lastNotifiedAtMillis = existing?.lastNotifiedAtMillis ?: 0
+                    )
+                )
+            }
         }
     }
 

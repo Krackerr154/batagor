@@ -59,7 +59,7 @@ fun StudentTaskApp() {
             val currentDestination = navBackStackEntry?.destination
             val destinations = listOf(DashboardDestination.List, DashboardDestination.Calendar)
             val currentRoute = currentDestination?.route
-            val shouldShowBottomBar = currentRoute != "create" && !currentRoute?.startsWith("edit/") ?: true
+            val shouldShowBottomBar = currentRoute != "create" && currentRoute?.startsWith("edit/") != true
 
             if (shouldShowBottomBar) {
                 NavigationBar {
@@ -88,7 +88,7 @@ fun StudentTaskApp() {
         },
         floatingActionButton = {
             val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-            val shouldShowFab = currentRoute != "create" && !currentRoute?.startsWith("edit/") ?: true
+            val shouldShowFab = currentRoute != "create" && currentRoute?.startsWith("edit/") != true
             if (shouldShowFab) {
                 FloatingActionButton(onClick = { navController.navigate("create") }) {
                     Icon(Icons.Default.Add, contentDescription = "Add task")
@@ -150,25 +150,45 @@ private fun AppNavHost(
             val taskId = backStackEntry.arguments?.getLong("taskId") ?: 0L
             val scope = rememberCoroutineScope()
             val taskState = remember { mutableStateOf<TaskEntity?>(null) }
+            val isLoading = remember { mutableStateOf(true) }
 
             LaunchedEffect(taskId) {
-                scope.launch {
-                    taskState.value = viewModel.getTask(taskId)
+                isLoading.value = true
+                if (taskId == 0L) {
+                    isLoading.value = false
+                    onNavigateBack()
+                } else {
+                    scope.launch {
+                        taskState.value = viewModel.getTask(taskId)
+                        isLoading.value = false
+                    }
                 }
             }
 
-            taskState.value?.let { task ->
-                TaskFormScreen(
-                    onSave = viewModel::saveTask,
-                    onBack = onNavigateBack,
-                    editingTaskId = task.id,
-                    editingTaskTitle = task.title,
-                    editingTaskDescription = task.description,
-                    editingTaskDueAtMillis = task.dueAtMillis,
-                    editingTaskTag = task.tag,
-                    editingTaskPriority = task.priority,
-                    editingTaskStatus = task.status
-                )
+            when {
+                isLoading.value -> {
+                    Text("Loading task...")
+                }
+                taskState.value != null -> {
+                    val task = taskState.value!!
+                    TaskFormScreen(
+                        onSave = viewModel::saveTask,
+                        onBack = onNavigateBack,
+                        editingTaskId = task.id,
+                        editingTaskTitle = task.title,
+                        editingTaskDescription = task.description,
+                        editingTaskDueAtMillis = task.dueAtMillis,
+                        editingTaskTag = task.tag,
+                        editingTaskPriority = task.priority,
+                        editingTaskStatus = task.status
+                    )
+                }
+                else -> {
+                    // Task not found; navigate back
+                    LaunchedEffect(Unit) {
+                        onNavigateBack()
+                    }
+                }
             }
         }
     }

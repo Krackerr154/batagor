@@ -44,10 +44,10 @@ fun TaskFormScreen(
         status: TaskStatus
     ) -> Unit,
     onBack: () -> Unit,
-    editingTaskId: Long = 0,
+    editingTaskId: Long = 0L,
     editingTaskTitle: String = "",
     editingTaskDescription: String = "",
-    editingTaskDueAtMillis: Long = 0,
+    editingTaskDueAtMillis: Long = 0L,
     editingTaskTag: TaskTag = TaskTag.COURSEWORK,
     editingTaskPriority: TaskPriority = TaskPriority.MEDIUM,
     editingTaskStatus: TaskStatus = TaskStatus.TODO

@@ -32,7 +32,7 @@ fun TaskCard(
     task: TaskEntity,
     onStatusChanged: (TaskEntity, TaskStatus) -> Unit,
     onDelete: (TaskEntity) -> Unit,
-    onEdit: (TaskEntity) -> Unit
+    onEdit: (TaskEntity) -> Unit = {}
 ) {
     val dueColor = deadlineColor(task.dueAtMillis, task.status)
     val expanded = remember { mutableStateOf(false) }

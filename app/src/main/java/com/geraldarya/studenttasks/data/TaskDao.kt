@@ -13,7 +13,15 @@ interface TaskDao {
     @Query("SELECT * FROM tasks ORDER BY dueAtMillis ASC")
     fun observeAll(): Flow<List<TaskEntity>>
 
-    @Query("SELECT * FROM tasks ORDER BY priority DESC, dueAtMillis ASC")
+    @Query(
+        "SELECT * FROM tasks " +
+        "ORDER BY CASE priority " +
+        "WHEN 'HIGH' THEN 3 " +
+        "WHEN 'MEDIUM' THEN 2 " +
+        "WHEN 'LOW' THEN 1 " +
+        "ELSE 0 END DESC, " +
+        "dueAtMillis ASC"
+    )
     fun observeAllByPriority(): Flow<List<TaskEntity>>
 
     @Query("SELECT * FROM tasks ORDER BY createdAtMillis DESC")

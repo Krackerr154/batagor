@@ -18,7 +18,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExposedDropdownMenu
+import androidx.compose.material3.DropdownMenu
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -304,7 +304,7 @@ private fun EnumDropdown(
                 .fillMaxWidth()
         )
 
-        ExposedDropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {
+        DropdownMenu(expanded = expanded.value, onDismissRequest = { expanded.value = false }) {
             options.forEach { option ->
                 DropdownMenuItem(
                     text = { Text(option) },

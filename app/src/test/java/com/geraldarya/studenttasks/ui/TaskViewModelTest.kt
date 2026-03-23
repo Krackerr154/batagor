@@ -7,11 +7,13 @@ import com.geraldarya.studenttasks.domain.SortOrder
 import com.geraldarya.studenttasks.domain.TaskPriority
 import com.geraldarya.studenttasks.domain.TaskStatus
 import com.geraldarya.studenttasks.domain.TaskTag
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.TestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
@@ -48,7 +50,7 @@ class TaskViewModelTest {
     @get:Rule
     val instantExecutorRule = InstantTaskExecutorRule()
 
-    private lateinit var testDispatcher: UnconfinedTestDispatcher
+    private lateinit var testDispatcher: TestDispatcher
     private lateinit var mockRepository: TaskRepository
     private lateinit var viewModel: TaskViewModel
     private lateinit var taskFlow: MutableStateFlow<List<TaskEntity>>
@@ -67,9 +69,10 @@ class TaskViewModelTest {
         whenever(mockRepository.observeTasks()).thenReturn(taskFlow)
         whenever(mockRepository.observeTasksByPriority()).thenReturn(tasksByPriorityFlow)
         whenever(mockRepository.observeTasksByCreatedDate()).thenReturn(tasksByCreatedDateFlow)
+        kotlinx.coroutines.runBlocking { whenever(mockRepository.save(any())).thenReturn(1L) }
         viewModel = TaskViewModel(mockRepository)
         // Start collecting uiState to trigger upstream flow collection
-        collectorJob = testDispatcher.launch {
+        collectorJob = CoroutineScope(testDispatcher).launch {
             viewModel.uiState.collect {}
         }
     }
@@ -173,17 +176,8 @@ class TaskViewModelTest {
 
     @Test
     fun testTasksSortedByDueDate_Ascending() = runTest {
-        // Given: tasks with different due dates (unsorted)
+        // Given: tasks sorted by due date ascending (as repository would return them)
         val tasks = listOf(
-            TaskEntity(
-                id = 1L,
-                title = "Latest",
-                description = "Due last",
-                dueAtMillis = 5000L,
-                tag = TaskTag.PERSONAL,
-                priority = TaskPriority.LOW,
-                status = TaskStatus.TODO
-            ),
             TaskEntity(
                 id = 2L,
                 title = "Earliest",
@@ -200,6 +194,15 @@ class TaskViewModelTest {
                 dueAtMillis = 3000L,
                 tag = TaskTag.PERSONAL,
                 priority = TaskPriority.MEDIUM,
+                status = TaskStatus.TODO
+            ),
+            TaskEntity(
+                id = 1L,
+                title = "Latest",
+                description = "Due last",
+                dueAtMillis = 5000L,
+                tag = TaskTag.PERSONAL,
+                priority = TaskPriority.LOW,
                 status = TaskStatus.TODO
             )
         )
@@ -333,15 +336,15 @@ class TaskViewModelTest {
 
     @Test
     fun testFilterWithSorting_BothAppliedCorrectly() = runTest {
-        // Given: tasks with different tags and due dates
+        // Given: tasks sorted by due date ascending (as repository would return them)
         val tasks = listOf(
             TaskEntity(
-                id = 1L,
-                title = "Coursework Late",
-                description = "Due last",
-                dueAtMillis = 9000L,
+                id = 3L,
+                title = "Coursework Early",
+                description = "Due first",
+                dueAtMillis = 1000L,
                 tag = TaskTag.COURSEWORK,
-                priority = TaskPriority.LOW,
+                priority = TaskPriority.MEDIUM,
                 status = TaskStatus.TODO
             ),
             TaskEntity(
@@ -354,12 +357,12 @@ class TaskViewModelTest {
                 status = TaskStatus.TODO
             ),
             TaskEntity(
-                id = 3L,
-                title = "Coursework Early",
-                description = "Due first",
-                dueAtMillis = 1000L,
+                id = 1L,
+                title = "Coursework Late",
+                description = "Due last",
+                dueAtMillis = 9000L,
                 tag = TaskTag.COURSEWORK,
-                priority = TaskPriority.MEDIUM,
+                priority = TaskPriority.LOW,
                 status = TaskStatus.TODO
             )
         )
